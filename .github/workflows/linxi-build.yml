@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: read
+  pages: write #permissions for deploying to GitHub Pages
+  id-token: write
 
 jobs:
   build:
