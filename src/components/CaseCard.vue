@@ -2,6 +2,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { LAYER_OPTIONS } from '../data/cases'
 
 const props = defineProps({
   caseInfo: {
@@ -10,19 +11,11 @@ const props = defineProps({
   }
 })
 
-const previewLayers = [
-  { value: 'reference', label: '参考值' },
-  { value: 'prediction', label: '预测值' },
-  { value: 'absoluteError', label: '绝对误差' }
-]
-
 // 每张卡片拥有独立的切换状态
 const selectedLayer = ref('reference')
 
 const selectedLabel = computed(() =>
-  previewLayers.find(item =>
-    item.value === selectedLayer.value
-  )?.label ?? ''
+  LAYER_OPTIONS.find(({ value }) => value === selectedLayer.value)?.label
 )
 
 // 真实缩略图由数据组提供后再接入
@@ -55,9 +48,9 @@ const previewSrc = computed(() =>
     </RouterLink>
 
     <!-- 每张卡片独立切换 -->
-    <div class="case-preview-switcher">
+    <div class="case-preview-switcher" role="group" :aria-label="`${caseInfo.name} 预览图层`">
       <button
-        v-for="layer in previewLayers"
+        v-for="layer in LAYER_OPTIONS"
         :key="layer.value"
         type="button"
         class="case-preview-option"
