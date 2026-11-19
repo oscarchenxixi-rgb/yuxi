@@ -5,7 +5,7 @@ on:
     branches: [main]
   push:
     branches: [main, linxi]
-    tags: ['linxi-v*']
+    tags: ['Vue-Yuxi-v*']
   workflow_dispatch:
 
 permissions:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    name: 构建 Vue 项目
+    name: 构建 Vue 项目 By Linxi
     runs-on: ubuntu-latest
 
     steps:
@@ -40,9 +40,9 @@ jobs:
           if-no-files-found: error
 
   release:
-    name: 发布预发布版本
+    name: 发布预发布版本 By Linxi
     needs: build
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/linxi-v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/Vue-Yuxi-v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -53,9 +53,11 @@ jobs:
         with:
           name: linxi-website
           path: dist/
+
       - name: Package website
         working-directory: dist
         run: zip -r ../linxi-website.zip .
+
       - name: Publish release asset
         env:
           GH_TOKEN: ${{ github.token }}
@@ -68,7 +70,7 @@ jobs:
           else
             gh release create "$GITHUB_REF_NAME" linxi-website.zip \
               --verify-tag \
-              --title "Linxi Frontend $GITHUB_REF_NAME" \
+              --title "Vue-Yuxi Frontend $GITHUB_REF_NAME" \
               --notes "FlowViz 业务前端演示构建。" \
               --prerelease
           fi
