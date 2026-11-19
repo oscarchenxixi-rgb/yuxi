@@ -59,12 +59,12 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: linxi-website
+          name: Yuxi-Vue-website
           path: dist/
 
       - name: Package website
         working-directory: dist
-        run: zip -r ../linxi-website.zip .
+        run: zip -r ../Yuxi-Vue-website.zip .
 
       - name: Publish release asset
         env:
@@ -72,11 +72,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           if assets=$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name'); then
-            if ! grep -Fxq 'linxi-website.zip' <<< "$assets"; then
-              gh release upload "$GITHUB_REF_NAME" linxi-website.zip
+            if ! grep -Fxq 'Yuxi-Vue-website.zip' <<< "$assets"; then
+              gh release upload "$GITHUB_REF_NAME" Yuxi-Vue-website.zip
             fi
           else
-            gh release create "$GITHUB_REF_NAME" linxi-website.zip \
+            gh release create "$GITHUB_REF_NAME" Yuxi-Vue-website.zip \
               --verify-tag \
               --title "Vue-Yuxi Frontend $GITHUB_REF_NAME" \
               --notes "FlowViz 业务前端演示构建。" \
