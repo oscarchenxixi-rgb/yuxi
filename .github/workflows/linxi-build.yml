@@ -1,0 +1,64 @@
+name: Linxi Frontend Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, linxi]
+    tags: ['linxi-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Vue frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linxi-website
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    name: Publish prerelease
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/linxi-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: linxi-website
+          path: dist/
+      - name: Package website
+        working-directory: dist
+        run: zip -r ../linxi-website.zip .
+      - name: Publish release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if assets=$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name'); then
+            if ! grep -Fxq 'linxi-website.zip' <<< "$assets"; then
+              gh release upload "$GITHUB_REF_NAME" linxi-website.zip
+            fi
+          else
+            gh release create "$GITHUB_REF_NAME" linxi-website.zip \
+              --verify-tag \
+              --title "Linxi Frontend $GITHUB_REF_NAME" \
+              --notes "FlowViz 业务前端演示构建。" \
+              --prerelease
+          fi
