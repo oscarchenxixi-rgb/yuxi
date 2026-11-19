@@ -41,6 +41,11 @@ jobs:
           path: dist/
           if-no-files-found: error
 
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
   
   release:
     name: 发布预发布版本 By Linxi
