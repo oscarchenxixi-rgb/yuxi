@@ -1,5 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import { CASES } from '../data/cases'
+import { legacyPagesLocation } from './pagesLocation'
 
 const routes = [
   { path: '/', component: () => import('../pages/HomePage.vue') },
@@ -13,8 +14,15 @@ const routes = [
   { path: '/:pathMatch(.*)*', redirect: '/404' }
 ]
 
+const base = import.meta.env.BASE_URL
+const pagesMode = import.meta.env.VITE_ROUTER_MODE === 'hash'
+if (pagesMode) {
+  const legacyUrl = legacyPagesLocation(window.location, base)
+  if (legacyUrl) window.history.replaceState(window.history.state, '', legacyUrl)
+}
+
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: pagesMode ? createWebHashHistory(base) : createWebHistory(base),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition

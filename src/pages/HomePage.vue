@@ -1,10 +1,15 @@
 <script setup>
+import { computed, shallowRef } from 'vue'
 import { CASES, DATA_DISCLAIMER } from '../data/cases'
 import CaseCard from '../components/CaseCard.vue'
+
+const selectedCase = shallowRef(CASES[0])
+const selectedPreview = computed(() => selectedCase.value.previews.reference)
+
 const features = [
   { number: '01', title: '参数化演示流程', desc: '选择案例并配置演示参数，预留 Mock 任务接口。' },
-  { number: '02', title: '交互式三维点云', desc: '后续对接 Three.js 场景，浏览管道流场的空间分布。' },
-  { number: '03', title: '多物理场对比', desc: '支持参考值、预测值与绝对误差的展示流程。' },
+  { number: '02', title: '交互式三维点云', desc: '旋转、缩放管道流场，点击测点查看压力或速度。' },
+  { number: '03', title: '案例参考数据', desc: '切换三个 CFD 案例，在统一量程下比较同一物理场。' },
   { number: '04', title: '结果导出与回看', desc: '结果模块接入后，可进行截图、数据导出与历史查看。' }
 ]
 </script>
@@ -20,14 +25,45 @@ const features = [
           <div class="hero-actions"><RouterLink to="/simulation" class="btn btn-primary btn-lg">开始仿真演示 →</RouterLink><RouterLink to="/cases" class="btn btn-secondary btn-lg">浏览典型案例</RouterLink></div>
           <div class="hero-tags"><span>Vue 3</span><span>Three.js</span><span>Mock API</span><span>静态 JSON</span></div>
         </div>
-        <div class="hero-preview">
-          <div class="preview-toolbar"><span class="status-dot"></span> Case 0415 · 主视觉区域</div>
-          <div class="preview-canvas">
-            <div class="preview-rings"></div><div class="preview-pipe"></div>
-            <div class="preview-placeholder">Three.js 点云预览待集成<br><small>当前为装饰性占位示意，非实际计算图像</small></div>
+        <figure class="hero-preview">
+          <div class="preview-toolbar">
+            <span><span class="status-dot" aria-hidden="true"></span>CFD 参考预览 · 体积压力</span>
+            <div class="hero-preview-cases" role="group" aria-label="切换参考案例">
+              <button
+                v-for="caseInfo in CASES"
+                :key="caseInfo.caseId"
+                type="button"
+                :aria-label="caseInfo.name"
+                :aria-pressed="selectedCase.caseId === caseInfo.caseId"
+                @click="selectedCase = caseInfo"
+              >
+                {{ caseInfo.caseId }}
+              </button>
+            </div>
           </div>
-          <div class="preview-footer"><span>近壁面压力 / 合速度</span><span>来源：main.pdf</span></div>
-        </div>
+          <img
+            :key="selectedCase.caseId"
+            class="hero-preview-image"
+            :src="selectedPreview.image"
+            :alt="`${selectedCase.name} 管道内部的体积压力点云`"
+            width="1120"
+            height="560"
+            fetchpriority="high"
+          />
+          <figcaption class="preview-footer">
+            <div class="hero-preview-scale">
+              <div class="hero-preview-scale-values" aria-label="当前案例的压力色标">
+                <span>{{ selectedPreview.min }}</span>
+                <span class="pressure-scale-ramp" aria-hidden="true"></span>
+                <span>{{ selectedPreview.max }} kPa</span>
+              </div>
+              <small>SOLIDWORKS Flow Simulation</small>
+            </div>
+            <RouterLink class="btn btn-primary" :to="{ path: '/visualization', query: { case: selectedCase.caseId, field: 'volumePressure' } }">
+              打开三维预览 →
+            </RouterLink>
+          </figcaption>
+        </figure>
       </div>
     </section>
 

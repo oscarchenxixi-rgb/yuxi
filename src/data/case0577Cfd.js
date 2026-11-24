@@ -17,12 +17,28 @@ export function loadReferenceField(caseId, field) {
 
 export const syntheticCaseId = 'synthetic-pipe-000'
 
+export function supportsPointField(datasetId, field) {
+  return Object.hasOwn(sources, field) &&
+    (datasetId !== syntheticCaseId || field !== 'volumePressure')
+}
+
 export function isSyntheticDemo(query) {
-  return !query?.case || (query.demo === syntheticCaseId && query.case !== '0577')
+  return !query?.case || (query.demo === syntheticCaseId && !referenceCaseIds.includes(query.case))
 }
 
 export function loadSyntheticField(field) {
+  if (!supportsPointField(syntheticCaseId, field)) return null
   return loadPointField(syntheticCaseId, syntheticCaseId, 'synthetic', field)
+}
+
+export async function loadReferenceRange(field) {
+  const datasets = await Promise.all(referenceCaseIds.map((caseId) => loadReferenceField(caseId, field)))
+  if (datasets.some((data) => !data)) return null
+  return {
+    min: Math.min(...datasets.map((data) => data.min)),
+    max: Math.max(...datasets.map((data) => data.max)),
+    unit: datasets[0].unit,
+  }
 }
 
 async function loadPointField(caseId, directory, layer, field) {

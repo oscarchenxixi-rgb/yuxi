@@ -18,34 +18,41 @@ const selectedLabel = computed(() =>
   LAYER_OPTIONS.find(({ value }) => value === selectedLayer.value)?.label
 )
 
-// 真实缩略图由数据组提供后再接入
-const previewSrc = computed(() =>
+const preview = computed(() =>
   props.caseInfo.previews?.[selectedLayer.value] ?? null
 )
 </script>
 
 <template>
   <article class="case-card">
-    <RouterLink
-      class="case-visual"
-      :to="`/cases/${caseInfo.caseId}`"
-      :aria-label="`查看 ${caseInfo.name} 详情`"
-    >
-      <img
-        v-if="previewSrc"
-        :src="previewSrc"
-        :alt="`${caseInfo.name} ${selectedLabel}预览`"
-        class="case-visual-image"
-      />
-
-      <template v-else>
-        <div class="case-visual-grid"></div>
-        <div class="case-visual-pipe"></div>
-        <span class="case-preview-note">
-          {{ selectedLabel }}缩略图待接入 · 当前为占位示意
-        </span>
-      </template>
-    </RouterLink>
+    <div class="case-visual">
+      <RouterLink
+        class="case-visual-link"
+        :to="`/cases/${caseInfo.caseId}`"
+        :aria-label="`查看 ${caseInfo.name} 详情`"
+      >
+        <template v-if="preview">
+          <img
+            :src="preview.image"
+            :alt="`${caseInfo.name} 体积压力点云 · ${selectedLabel}`"
+            class="case-visual-image"
+            width="1120"
+            height="560"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="case-preview-scale">
+            <span>体积压力</span>
+            <span>{{ preview.min }}</span>
+            <span class="pressure-scale-ramp" aria-hidden="true"></span>
+            <span>{{ preview.max }} kPa</span>
+          </div>
+        </template>
+      </RouterLink>
+      <div class="case-preview-status" role="status">
+        <span v-if="!preview">暂无{{ selectedLabel }}数据</span>
+      </div>
+    </div>
 
     <!-- 每张卡片独立切换 -->
     <div class="case-preview-switcher" role="group" :aria-label="`${caseInfo.name} 预览图层`">

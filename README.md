@@ -19,6 +19,8 @@ npm run dev
 
 验证生产构建可执行 `npm run build`，再执行 `npm run preview` 并访问 `http://localhost:4173/`。
 
+执行 `npm test` 可检查三个案例的九个 CFD 参考文件。
+
 ---
 
 ## 页面清单
@@ -28,7 +30,7 @@ npm run dev
 - 案例库：`/cases`，支持关键词搜索、误差筛选、排序和案例指标对比
 - 案例详情：`/cases/0415`, `/cases/0577`, `/cases/0072`
 - 参数配置：`/simulation?case=0415`
-- 三维预览：`/visualization` 默认显示合成管道的近壁面压力，可切换到速度、旋转视角并点击测点查看数值。
+- 三维预览：`/visualization` 默认显示合成样例。进入 `/visualization?case=0415` 后，可以切换 CFD 案例和物理场，并使用「三个案例统一」量程比较颜色。
 - 关于我们：`/about`
 - 404：`/404`
 
@@ -37,6 +39,8 @@ npm run dev
 ## 构建与服务器部署
 
 PR、`main` 和 `linxi` 的推送会触发 GitHub Actions 构建，成功后可从对应运行下载 `linxi-website`。向包含工作流的提交推送 `linxi-v*` 标签时，工作流会创建预发布版本并附上 `linxi-website.zip`。
+
+GitHub Pages 使用哈希路由。分享案例或三维页面时，使用带 `#/` 的地址，例如 `https://oscarchenxixi-rgb.github.io/yuxi/#/visualization?case=0577`。部署后工作流会检查首页资源和九个参考数据文件。
 
 ---
 
@@ -99,7 +103,7 @@ location /flowviz/ {
 1. 数据组给出正式案例 JSON 后，将 `caseInfo.parameterSchema` 中的演示占位参数替换为真实 JSON 中 `presets` 和 `fields` 的字段结构；不要自行造数据。改动字段前应先与团队确认接口契约。
 2. Mock 组提供 `submitSimulation()` 后，在 `SimulationPage.vue` 替换 `submitSimulationPreview()`；创建成功后通过 `router.push('/tasks/' + taskId)` 跳转；任务状态页与结果页交给其他组员维护。
 3. 三维预览默认显示合成样例。从案例详情进入预览可查看 Case 0415、0577 和 0072 的 CFD 参考点云。各案例的近壁面压力、体积压力和速度 JSON 位于 `public/cfd/case-<ID>/reference/`。
-4. 数据组提供论文授权预览图后，将 `CaseCard.vue` 和 `CaseDetailPage.vue` 的装饰性占位区域替换成真实案例图；严禁将占位图当作真实流场。
+4. 数据组提供论文授权预览图后，将 `CaseCard.vue` 和 `CaseDetailPage.vue` 的装饰性占位区域替换成真实案例图；
 5. 当前主导航中的“历史记录（待接入）”为不可点击提示，等历史组完成 `/history` 再改为实际路由。
 
 ---

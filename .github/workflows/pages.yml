@@ -23,7 +23,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build -- --base=/yuxi/
-      # GitHub Pages serves this entry for direct links to Vue Router pages.
+        env:
+          VITE_ROUTER_MODE: hash
+      # Existing links without a hash use this entry to recover their route.
       - run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
@@ -42,3 +44,11 @@ jobs:
     steps:
       - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
         id: deployment
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+      - name: Check published site and CFD datasets
+        run: npm test
+        env:
+          FLOWVIZ_TEST_SITE: ${{ steps.deployment.outputs.page_url }}

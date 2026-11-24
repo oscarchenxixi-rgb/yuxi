@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { CASES, FIELD_OPTIONS, LAYER_OPTIONS } from '../data/cases'
+import { CASES, FIELD_OPTIONS } from '../data/cases'
 import { submitSimulationPreview } from '../services/demoCaseService'
 import ModalDialog from '../components/ModalDialog.vue'
 
@@ -23,12 +23,11 @@ const submitting = ref(false)
 const showResetConfirm = ref(false)
 const showPreviewSuccess = ref(false)
 let activeSubmission = null
+const referenceView = { layer: 'reference', quality: 'balanced' }
 const form = reactive({
   presetId: '',
   parameters: {},
   field: 'surfacePressure',
-  layer: 'reference',
-  quality: 'balanced',
   palette: 'viridis'
 })
 
@@ -37,8 +36,6 @@ function defaultsForCurrentCase() {
   form.presetId = currentSchema?.presets?.[0]?.id ?? ''
   form.parameters = Object.fromEntries((currentSchema?.fields ?? []).map((field) => [field.key, field.defaultValue]))
   form.field = 'surfacePressure'
-  form.layer = 'reference'
-  form.quality = 'balanced'
   form.palette = 'viridis'
   Object.keys(fieldErrors).forEach((key) => delete fieldErrors[key])
   message.value = ''
@@ -61,8 +58,7 @@ const hasChanges = computed(() => {
   const s = schema.value
   return form.presetId !== (s?.presets?.[0]?.id ?? '') ||
     (s?.fields ?? []).some((f) => form.parameters[f.key] !== f.defaultValue) ||
-    form.field !== 'surfacePressure' || form.layer !== 'reference' ||
-    form.quality !== 'balanced' || form.palette !== 'viridis'
+    form.field !== 'surfacePressure' || form.palette !== 'viridis'
 })
 
 function validateField(item) {
@@ -115,7 +111,7 @@ async function submit() {
     caseId: selectedCaseId.value,
     presetId: form.presetId,
     parameters: { ...form.parameters },
-    view: { field: form.field, layer: form.layer, quality: form.quality, palette: form.palette }
+    view: { ...referenceView, field: form.field, palette: form.palette }
   }
   const submission = Symbol()
   activeSubmission = submission
@@ -168,13 +164,13 @@ async function submit() {
             <p v-if="!(schema?.fields?.length)" class="notice warning">该案例尚无参数 schema，请先让数据组提供相应字段。</p>
             <div v-if="schema?.demoOnly" class="notice warning">当前案例已接入 CFD 参考结果。上方预设和滑块仅用于演示配置流程，调整后不会改变已保存的压力和速度结果。</div>
           </div>
-          <div class="form-section"><h2>初始显示设置</h2><div class="two-columns"><label class="form-field"><span>初始物理场</span><select v-model="form.field" :disabled="submitting"><option v-for="f in FIELD_OPTIONS" :key="f.value" :value="f.value">{{ f.label }}（{{ f.unit }}）</option></select></label><label class="form-field"><span>初始数据层</span><select v-model="form.layer" :disabled="submitting"><option v-for="l in LAYER_OPTIONS" :key="l.value" :value="l.value">{{ l.label }}</option></select></label><label class="form-field"><span>点云质量</span><select v-model="form.quality" :disabled="submitting"><option value="fast">流畅</option><option value="balanced">均衡</option><option value="fine">精细</option></select></label><label class="form-field"><span>调色板</span><select v-model="form.palette" :disabled="submitting"><option value="viridis">Viridis</option><option value="turbo">Turbo</option><option value="coolwarm">Coolwarm</option></select></label></div></div>
+          <div class="form-section"><h2>初始显示设置</h2><p class="muted small">三维预览使用固定采样的 CFD 参考点云。</p><div class="two-columns"><label class="form-field"><span>初始物理场</span><select v-model="form.field" :disabled="submitting"><option v-for="f in FIELD_OPTIONS" :key="f.value" :value="f.value">{{ f.label }}（{{ f.unit }}）</option></select></label><label class="form-field"><span>调色板</span><select v-model="form.palette" :disabled="submitting"><option value="viridis">Viridis</option><option value="turbo">Turbo</option><option value="coolwarm">Coolwarm</option></select></label></div></div>
           <div class="notice">当前为静态数据驱动的流程演示，提交参数不会触发真实 CFD 或模型计算。</div>
           <div v-if="message || hasFieldErrors" class="notice error" role="alert">{{ message || '参数存在错误，请检查标红的输入框。' }}</div>
           <div v-if="toast" class="notice" role="status">{{ toast }} <button type="button" class="link-button" @click="toast = ''">关闭</button></div>
           <div class="form-actions"><button type="button" class="btn btn-secondary" :disabled="submitting" @click="requestReset">重置</button><button type="submit" class="btn btn-primary" :disabled="submitting"><span v-if="submitting" class="spinner"></span>{{ submitting ? '正在验证演示配置…' : '验证并模拟提交（联调模式）' }}</button></div>
         </form>
-        <aside class="summary-card"><div class="eyebrow">SUMMARY</div><h2>参数摘要</h2><dl><dt>案例</dt><dd>{{ selectedCase.name }}</dd><dt>工况预设</dt><dd>{{ selectedPresetLabel ?? '未选择' }}</dd><template v-for="item in schema?.fields || []" :key="item.key"><dt>{{ item.label }}</dt><dd>{{ form.parameters[item.key] === '' ? '未填写' : form.parameters[item.key] }} {{ item.unit }}</dd></template><dt>物理场</dt><dd>{{ FIELD_OPTIONS.find((f) => f.value === form.field)?.label }}</dd><dt>数据层</dt><dd>{{ LAYER_OPTIONS.find((f) => f.value === form.layer)?.label }}</dd><dt>质量</dt><dd>{{ form.quality }}</dd><dt>调色板</dt><dd>{{ form.palette }}</dd></dl><RouterLink :to="{ name: 'case-detail', params: { caseId: selectedCaseId } }" class="text-link">查看当前案例 →</RouterLink></aside>
+        <aside class="summary-card"><div class="eyebrow">SUMMARY</div><h2>参数摘要</h2><dl><dt>案例</dt><dd>{{ selectedCase.name }}</dd><dt>工况预设</dt><dd>{{ selectedPresetLabel ?? '未选择' }}</dd><template v-for="item in schema?.fields || []" :key="item.key"><dt>{{ item.label }}</dt><dd>{{ form.parameters[item.key] === '' ? '未填写' : form.parameters[item.key] }} {{ item.unit }}</dd></template><dt>物理场</dt><dd>{{ FIELD_OPTIONS.find((f) => f.value === form.field)?.label }}</dd><dt>数据层</dt><dd>参考值</dd><dt>采样</dt><dd>固定采样</dd><dt>调色板</dt><dd>{{ form.palette }}</dd></dl><RouterLink :to="{ name: 'case-detail', params: { caseId: selectedCaseId } }" class="text-link">查看当前案例 →</RouterLink></aside>
       </div>
     </section>
     <ModalDialog :open="showResetConfirm" label="重置确认" @close="showResetConfirm = false">
@@ -190,7 +186,7 @@ async function submit() {
       <p>当前版本仅验证前端配置。任务服务接入后，才会创建任务并显示结果。</p>
       <div class="right action-gap">
         <button type="button" class="btn btn-secondary" @click="showPreviewSuccess = false">关闭</button>
-        <RouterLink class="btn btn-primary" :to="{ path: '/visualization', query: { case: selectedCaseId, field: form.field, layer: form.layer, quality: form.quality, palette: form.palette } }">查看三维预览</RouterLink>
+        <RouterLink class="btn btn-primary" :to="{ path: '/visualization', query: { case: selectedCaseId, field: form.field, palette: form.palette } }">查看三维预览</RouterLink>
       </div>
     </ModalDialog>
   </main>

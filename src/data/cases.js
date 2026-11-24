@@ -16,18 +16,30 @@ export const CASES = [
     caseId: '0415', name: 'Case 0415', level: 'low', levelText: '低误差',
     description: '低误差代表案例，用于首页预览与主演示。',
     metrics: { pressureRelativeL2: 0.048, speedRelativeL2: 0.242 },
+    previews: { reference: {
+      image: new URL('../assets/case-0415-volume-pressure.webp', import.meta.url).href,
+      min: '88.03', max: '131.11'
+    } },
     source: 'main.pdf', parameterSchema: UI_ONLY_PARAMETER_SCHEMA
   },
   {
     caseId: '0577', name: 'Case 0577', level: 'medium', levelText: '中等误差',
     description: '中等误差代表案例，用于常规效果展示。',
     metrics: { pressureRelativeL2: 0.286, speedRelativeL2: 0.324 },
+    previews: { reference: {
+      image: new URL('../assets/case-0577-volume-pressure.webp', import.meta.url).href,
+      min: '101.328', max: '101.767'
+    } },
     source: 'main.pdf', parameterSchema: UI_ONLY_PARAMETER_SCHEMA
   },
   {
     caseId: '0072', name: 'Case 0072', level: 'high', levelText: '高误差',
     description: '困难工况与模型局限性展示，不应作为普遍精度的代表。',
     metrics: { pressureRelativeL2: 0.400, speedRelativeL2: 2.098 },
+    previews: { reference: {
+      image: new URL('../assets/case-0072-volume-pressure.webp', import.meta.url).href,
+      min: '101.3196', max: '101.3339'
+    } },
     source: 'main.pdf', parameterSchema: UI_ONLY_PARAMETER_SCHEMA
   }
 ]
